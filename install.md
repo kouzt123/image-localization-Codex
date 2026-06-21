@@ -33,6 +33,14 @@ Use ad-image-localization to inspect this image and propose localized ad sizes.
 
 If the skill is available, Codex should read `SKILL.md` before acting.
 
+To test the local helper script:
+
+```bash
+cd "${CODEX_HOME:-$HOME/.codex}/skills/ad-image-localization"
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests
+```
+
 ## Update
 
 If installed by clone:
@@ -87,6 +95,14 @@ ln -sfn ~/Developer/ad-image-localization-codex \
 ```
 
 如果 Skill 生效，Codex 会先读取 `SKILL.md` 再行动。
+
+测试本地辅助脚本：
+
+```bash
+cd "${CODEX_HOME:-$HOME/.codex}/skills/ad-image-localization"
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests
+```
 
 ## 更新
 

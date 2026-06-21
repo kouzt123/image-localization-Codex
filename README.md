@@ -53,6 +53,7 @@ Most image translation projects focus on OCR, text removal, translation, and re-
 The bundled Python helper handles deterministic last-mile work. It does **not** call an image API and does not replace Codex built-in image generation.
 
 ```bash
+python -m pip install -r requirements.txt
 python scripts/ad_image_localization_tools.py cover-crop input.png output.jpg --size 1200x628
 python scripts/ad_image_localization_tools.py manifest localized_output/
 python scripts/ad_image_localization_tools.py verify localized_output/
@@ -60,7 +61,14 @@ python scripts/ad_image_localization_tools.py contact-sheet localized_output/ qa
 python scripts/ad_image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
 ```
 
-Use it after model-native generation for repeatable safe cropping, upload-ready manifests, filename/dimension checks, visual QA sheets, and brand/product terminology memory. The helper uses Pillow; Codex bundled Python runtimes usually include it, and local users can install it with `python -m pip install pillow` if needed.
+Use it after model-native generation for repeatable safe cropping, upload-ready manifests, filename/dimension checks, visual QA sheets, and brand/product terminology memory. The helper uses Pillow; install it with `python -m pip install -r requirements.txt` when running outside Codex bundled Python environments.
+
+Local helper tests:
+
+```bash
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests
+```
 
 ## Installation
 
@@ -175,8 +183,10 @@ ad-image-localization-codex/
 ├── README.zh-CN.md
 ├── install.md
 ├── LICENSE
+├── requirements.txt
 ├── scripts/
 │   └── ad_image_localization_tools.py
+├── tests/
 ├── examples/
 ├── brand_term_memory.json
 └── agents/
