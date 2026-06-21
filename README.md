@@ -39,15 +39,11 @@ Future work may include a separate high-throughput skill based on the Nano Banan
 
 ![Organized output folder demo](./examples/organized-output-folder.png)
 
-## Positioning
+## How It Is Different
 
-This project is best described as an **Ad Creative Localization Skill for Codex**, not a general image translation tool.
+This is not a general image translation tool.
 
-| Nearby project/category | What it is good at | How this skill is different |
-| --- | --- | --- |
-| [OpenAI Codex imagegen sample skill](https://github.com/openai/codex/blob/main/codex-rs/skills/src/assets/samples/imagegen/SKILL.md) | General image generation/editing patterns, including text localization as one taxonomy | This skill wraps those capabilities into a marketing/UA delivery workflow. |
-| [manga-image-translator](https://github.com/zyddnys/manga-image-translator), [BallonsTranslator](https://github.com/dmMaze/BallonsTranslator), [Koharu](https://github.com/mayocream/koharu) | Mature OCR, inpainting, and translation workflows for manga/comics | This skill targets ad creatives, ecommerce images, social banners, platform sizes, brand terms, manifests, and QA. |
-| General OCR/inpainting translation pipelines | Text detection, removal, translation, and rendering | This skill is agent-native: Codex reasons about the creative, generates model-native variants, organizes outputs, and checks the batch before delivery. |
+Most image translation projects focus on OCR, text removal, translation, and re-rendering. This skill focuses on **ad creative localization delivery**: translating in-image copy, preserving brand/product terms, adapting to common ad sizes, generating upload-ready filenames, writing manifests, and running visual QA inside a Codex workflow.
 
 ## Installation
 
