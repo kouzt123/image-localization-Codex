@@ -6,7 +6,7 @@
 
 Image Localization is a Codex skill for turning source image creatives into localized, platform-ready ad and social assets. It is designed for marketers, UA teams, ecommerce operators, and creators who need multilingual creative variants without setting up a separate image-generation API.
 
-![Fictional ad localization demos](./examples/demo-localization-grid.png)
+![Image localization workflow overview](./examples/workflow-split-overview.png)
 
 ## Why This Skill
 
@@ -44,6 +44,8 @@ Future work may include a separate high-throughput skill based on the Nano Banan
 This is not a general image translation tool.
 
 Most image translation projects focus on OCR, text removal, translation, and re-rendering. This skill focuses on **ad creative localization delivery**: translating in-image copy, preserving brand/product terms, adapting to common ad sizes, generating upload-ready filenames, writing manifests, and running visual QA inside a Codex workflow.
+
+![Fictional ad localization demos](./examples/demo-localization-grid.png)
 
 ## Installation
 
