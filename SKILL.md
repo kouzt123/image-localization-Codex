@@ -53,6 +53,8 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - Use exact resize when the raw model output already matches the target aspect ratio.
    - Use cover-crop when the target ratio is close to a generated common ratio and the model output has safe margins.
    - Use model-generated canvas extension or reflow instead of blur padding when crop would remove important content.
+   - Prefer the bundled helper for repeatable local operations:
+     `python scripts/image_localization_tools.py cover-crop <input> <output> --size 1200x628`.
 
 6. **Export**
    - Default filename pattern:
@@ -60,11 +62,28 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - Use lowercase English slugs for creative names.
    - Keep source files untouched.
    - Write a manifest when producing batches.
+   - For batch folders, use the helper to write manifests:
+     `python scripts/image_localization_tools.py manifest <output-folder>`.
 
 7. **QA**
    - Check dimensions, language, readability, crop safety, missing objects, malformed text, visual artifacts, and brand/product preservation.
+   - Use `verify` for filename/dimension checks and `contact-sheet` to create a visual QA sheet before final review.
    - If an output fails, regenerate or re-edit once.
    - If the second attempt still fails, deliver the best available output only with a clear warning.
+
+## Bundled Helper Script
+
+Use `scripts/image_localization_tools.py` only for deterministic last-mile work. It does not call image APIs and does not replace Codex built-in image generation.
+
+```bash
+python scripts/image_localization_tools.py cover-crop in.png out.jpg --size 1200x628
+python scripts/image_localization_tools.py manifest localized_output/
+python scripts/image_localization_tools.py verify localized_output/
+python scripts/image_localization_tools.py contact-sheet localized_output/ qa_contact_sheet.jpg
+python scripts/image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
+```
+
+The helper expects Pillow. In Codex desktop environments, use the bundled Python runtime when available; outside Codex, install Pillow locally if needed.
 
 ## Size Adaptation Rules
 
@@ -91,6 +110,8 @@ Example: `1920x1080` to `1200x628`
 - Crop `47` vertical pixels total.
 - Default crop removes about `23` px from the top and `24` px from the bottom.
 - If QA shows edge risk, regenerate the `16:9` image with stronger safe-margin instructions or shift the crop toward empty space.
+
+The `cover-crop` helper implements this exact algorithm and reports the resized size and crop box for auditability.
 
 ## Terminology Memory
 

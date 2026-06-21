@@ -36,6 +36,7 @@ Future work may include a separate high-throughput skill based on the Nano Banan
 - Maintains brand/product terminology memory.
 - Produces clean upload-ready filenames and manifests.
 - Runs visual QA before delivery, with one regeneration pass for failed outputs.
+- Includes a deterministic helper script for safe crop, manifests, filename/dimension checks, QA contact sheets, and terminology memory updates.
 
 ![Organized output folder demo](./examples/organized-output-folder.png)
 
@@ -46,6 +47,20 @@ This is not a general image translation tool.
 Most image translation projects focus on OCR, text removal, translation, and re-rendering. This skill focuses on **ad creative localization delivery**: translating in-image copy, preserving brand/product terms, adapting to common ad sizes, generating upload-ready filenames, writing manifests, and running visual QA inside a Codex workflow.
 
 ![Fictional ad localization demos](./examples/demo-localization-grid.png)
+
+## Helper Script
+
+The bundled Python helper handles deterministic last-mile work. It does **not** call an image API and does not replace Codex built-in image generation.
+
+```bash
+python scripts/image_localization_tools.py cover-crop input.png output.jpg --size 1200x628
+python scripts/image_localization_tools.py manifest localized_output/
+python scripts/image_localization_tools.py verify localized_output/
+python scripts/image_localization_tools.py contact-sheet localized_output/ qa_contact_sheet.jpg
+python scripts/image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
+```
+
+Use it after model-native generation for repeatable safe cropping, upload-ready manifests, filename/dimension checks, visual QA sheets, and brand/product terminology memory. The helper uses Pillow; Codex bundled Python runtimes usually include it, and local users can install it with `python -m pip install pillow` if needed.
 
 ## Installation
 
@@ -124,6 +139,12 @@ For special sizes such as `1200x628`, the recommended workflow is:
 
 This preserves geometry and avoids non-uniform stretching.
 
+The helper script exposes this as a reusable command:
+
+```bash
+python scripts/image_localization_tools.py cover-crop 1920x1080.png 1200x628.jpg --size 1200x628
+```
+
 ## Terminology Memory
 
 The skill supports a JSON memory file for user-approved terminology:
@@ -154,6 +175,8 @@ image-localization-Codex/
 ├── README.zh-CN.md
 ├── install.md
 ├── LICENSE
+├── scripts/
+│   └── image_localization_tools.py
 ├── examples/
 ├── brand_term_memory.json
 └── agents/

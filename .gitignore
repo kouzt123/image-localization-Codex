@@ -7,7 +7,7 @@
 # Local output folders from image localization runs
 localized_output*/
 model_raw/
-qa_contact_sheet_*.jpg
+qa_contact_sheet*.jpg
 manifest.csv
 manifest.json
 
