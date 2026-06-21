@@ -1,9 +1,9 @@
 ---
-name: image-localization
+name: ad-image-localization
 description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, export standardized filenames, and visually QA generated batches. Prefer Codex built-in vision, image generation, and image editing; use local scripts only for deterministic resizing, cropping, naming, manifests, and QA sheets.
 ---
 
-# Image Localization
+# Ad Image Localization
 
 ## Purpose
 
@@ -39,8 +39,8 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - Keep brand-level terminology separate from product-level terminology.
 
 3. **Check terminology memory**
-   - Read `$CODEX_HOME/skills/image-localization/brand_term_memory.json` when available.
-   - If the workspace has `.image-localization/brand_term_memory.json`, prefer it for project-local rules.
+   - Read `$CODEX_HOME/skills/ad-image-localization/brand_term_memory.json` when available.
+   - If the workspace has `.ad-image-localization/brand_term_memory.json`, prefer it for project-local rules.
    - Persist only user-approved rules, such as "translate X as Y" or "do not translate X".
    - If the current image appears to belong to a different brand/product family than the last task, warn the user and suggest starting a separate task/output folder before applying remembered terms.
 
@@ -54,7 +54,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - Use cover-crop when the target ratio is close to a generated common ratio and the model output has safe margins.
    - Use model-generated canvas extension or reflow instead of blur padding when crop would remove important content.
    - Prefer the bundled helper for repeatable local operations:
-     `python scripts/image_localization_tools.py cover-crop <input> <output> --size 1200x628`.
+     `python scripts/ad_image_localization_tools.py cover-crop <input> <output> --size 1200x628`.
 
 6. **Export**
    - Default filename pattern:
@@ -63,7 +63,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - Keep source files untouched.
    - Write a manifest when producing batches.
    - For batch folders, use the helper to write manifests:
-     `python scripts/image_localization_tools.py manifest <output-folder>`.
+     `python scripts/ad_image_localization_tools.py manifest <output-folder>`.
 
 7. **QA**
    - Check dimensions, language, readability, crop safety, missing objects, malformed text, visual artifacts, and brand/product preservation.
@@ -73,14 +73,14 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 
 ## Bundled Helper Script
 
-Use `scripts/image_localization_tools.py` only for deterministic last-mile work. It does not call image APIs and does not replace Codex built-in image generation.
+Use `scripts/ad_image_localization_tools.py` only for deterministic last-mile work. It does not call image APIs and does not replace Codex built-in image generation.
 
 ```bash
-python scripts/image_localization_tools.py cover-crop in.png out.jpg --size 1200x628
-python scripts/image_localization_tools.py manifest localized_output/
-python scripts/image_localization_tools.py verify localized_output/
-python scripts/image_localization_tools.py contact-sheet localized_output/ qa_contact_sheet.jpg
-python scripts/image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
+python scripts/ad_image_localization_tools.py cover-crop in.png out.jpg --size 1200x628
+python scripts/ad_image_localization_tools.py manifest localized_output/
+python scripts/ad_image_localization_tools.py verify localized_output/
+python scripts/ad_image_localization_tools.py contact-sheet localized_output/ qa_contact_sheet.jpg
+python scripts/ad_image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
 ```
 
 The helper expects Pillow. In Codex desktop environments, use the bundled Python runtime when available; outside Codex, install Pillow locally if needed.

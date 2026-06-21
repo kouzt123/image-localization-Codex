@@ -1,12 +1,12 @@
-# Image Localization Codex Skill
+# Ad Image Localization Codex Skill
 
 **Localize image creatives with Codex built-in image generation. No extra image API required.**
 
 [中文说明](./README.zh-CN.md) · [Installation](./install.md) · [Skill](./SKILL.md) · [License](./LICENSE)
 
-Image Localization is a Codex skill for turning source image creatives into localized, platform-ready ad and social assets. It is designed for marketers, UA teams, ecommerce operators, and creators who need multilingual creative variants without setting up a separate image-generation API.
+Ad Image Localization is a Codex skill for turning source image creatives into localized, platform-ready ad and social assets. It is designed for marketers, UA teams, ecommerce operators, and creators who need multilingual creative variants without setting up a separate image-generation API.
 
-![Image localization workflow overview](./examples/workflow-split-overview.png)
+![Ad image localization workflow overview](./examples/workflow-split-overview.png)
 
 ## Why This Skill
 
@@ -53,11 +53,11 @@ Most image translation projects focus on OCR, text removal, translation, and re-
 The bundled Python helper handles deterministic last-mile work. It does **not** call an image API and does not replace Codex built-in image generation.
 
 ```bash
-python scripts/image_localization_tools.py cover-crop input.png output.jpg --size 1200x628
-python scripts/image_localization_tools.py manifest localized_output/
-python scripts/image_localization_tools.py verify localized_output/
-python scripts/image_localization_tools.py contact-sheet localized_output/ qa_contact_sheet.jpg
-python scripts/image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
+python scripts/ad_image_localization_tools.py cover-crop input.png output.jpg --size 1200x628
+python scripts/ad_image_localization_tools.py manifest localized_output/
+python scripts/ad_image_localization_tools.py verify localized_output/
+python scripts/ad_image_localization_tools.py contact-sheet localized_output/ qa_contact_sheet.jpg
+python scripts/ad_image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
 ```
 
 Use it after model-native generation for repeatable safe cropping, upload-ready manifests, filename/dimension checks, visual QA sheets, and brand/product terminology memory. The helper uses Pillow; Codex bundled Python runtimes usually include it, and local users can install it with `python -m pip install pillow` if needed.
@@ -68,17 +68,17 @@ Install directly into your Codex skills directory:
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-git clone https://github.com/kouzt123/image-localization-Codex \
-  "${CODEX_HOME:-$HOME/.codex}/skills/image-localization"
+git clone https://github.com/kouzt123/ad-image-localization-codex \
+  "${CODEX_HOME:-$HOME/.codex}/skills/ad-image-localization"
 ```
 
 If you prefer to clone elsewhere, symlink the whole repo:
 
 ```bash
-git clone https://github.com/kouzt123/image-localization-Codex ~/Developer/image-localization-Codex
+git clone https://github.com/kouzt123/ad-image-localization-codex ~/Developer/ad-image-localization-codex
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-ln -sfn ~/Developer/image-localization-Codex \
-  "${CODEX_HOME:-$HOME/.codex}/skills/image-localization"
+ln -sfn ~/Developer/ad-image-localization-codex \
+  "${CODEX_HOME:-$HOME/.codex}/skills/ad-image-localization"
 ```
 
 Restart Codex or refresh skills if your environment requires it.
@@ -90,7 +90,7 @@ See [install.md](./install.md) for manual setup and update notes.
 In Codex, ask for the skill explicitly:
 
 ```text
-Use image-localization to translate this game ad into German, French, Spanish, Japanese, and Korean. Export 1200x1200, 1920x1080, 1080x1350, 1080x1920, and 1200x628.
+Use ad-image-localization to translate this game ad into German, French, Spanish, Japanese, and Korean. Export 1200x1200, 1920x1080, 1080x1350, 1080x1920, and 1200x628.
 ```
 
 Other examples:
@@ -108,25 +108,25 @@ Remember that "Codex" should not be translated for OpenAI assets.
 ### Game Ad
 
 ```text
-Use image-localization to localize this game ad into German, Spanish, Japanese, and Arabic. Preserve the game title, translate all character traits and UI labels, and export 1200x1200, 1920x1080, 1080x1350, 1080x1920, and 1200x628.
+Use ad-image-localization to localize this game ad into German, Spanish, Japanese, and Arabic. Preserve the game title, translate all character traits and UI labels, and export 1200x1200, 1920x1080, 1080x1350, 1080x1920, and 1200x628.
 ```
 
 ### Ecommerce Product Image
 
 ```text
-Use image-localization to create French and Portuguese versions of this product banner. Keep the brand name unchanged, localize the offer text, and output Meta feed, story, and 1200x628 link-ad sizes.
+Use ad-image-localization to create French and Portuguese versions of this product banner. Keep the brand name unchanged, localize the offer text, and output Meta feed, story, and 1200x628 link-ad sizes.
 ```
 
 ### SaaS Banner
 
 ```text
-Use image-localization to localize this SaaS launch banner into Japanese and Korean. Keep product UI readable, preserve the logo, and generate 16:9 plus 1200x628 with safe margins.
+Use ad-image-localization to localize this SaaS launch banner into Japanese and Korean. Keep product UI readable, preserve the logo, and generate 16:9 plus 1200x628 with safe margins.
 ```
 
 ### App Store / Social Screenshot
 
 ```text
-Use image-localization to turn these app screenshots into Indonesian and Vietnamese campaign creatives. Translate visible marketing copy, keep UI labels natural, and export upload-ready filenames with manifest.json.
+Use ad-image-localization to turn these app screenshots into Indonesian and Vietnamese campaign creatives. Translate visible marketing copy, keep UI labels natural, and export upload-ready filenames with manifest.json.
 ```
 
 ## Size Handling
@@ -142,7 +142,7 @@ This preserves geometry and avoids non-uniform stretching.
 The helper script exposes this as a reusable command:
 
 ```bash
-python scripts/image_localization_tools.py cover-crop 1920x1080.png 1200x628.jpg --size 1200x628
+python scripts/ad_image_localization_tools.py cover-crop 1920x1080.png 1200x628.jpg --size 1200x628
 ```
 
 ## Terminology Memory
@@ -169,14 +169,14 @@ Brand-level rules apply across products. Product-level rules can override brand 
 ## Repository Structure
 
 ```text
-image-localization-Codex/
+ad-image-localization-codex/
 ├── SKILL.md
 ├── README.md
 ├── README.zh-CN.md
 ├── install.md
 ├── LICENSE
 ├── scripts/
-│   └── image_localization_tools.py
+│   └── ad_image_localization_tools.py
 ├── examples/
 ├── brand_term_memory.json
 └── agents/

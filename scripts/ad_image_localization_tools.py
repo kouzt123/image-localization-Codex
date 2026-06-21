@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic helpers for the image-localization Codex skill.
+"""Deterministic helpers for the ad-image-localization Codex skill.
 
 These helpers intentionally do not generate or translate images. Use Codex built-in
 image generation/editing for native creative work, then use this script for
@@ -391,7 +391,7 @@ def command_memory_list(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Deterministic last-mile helpers for image-localization outputs."
+        description="Deterministic last-mile helpers for ad-image-localization outputs."
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
