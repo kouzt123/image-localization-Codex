@@ -4,6 +4,18 @@
 
 ## Install For Codex
 
+### Easiest Option
+
+Copy this prompt into Codex:
+
+```text
+Help me install this Codex skill: https://github.com/kouzt123/ad-image-localization-codex
+```
+
+Codex can clone the repo into your local skills folder and tell you when to restart or refresh skills.
+
+### Manual Option
+
 Clone the repository into the Codex skills directory:
 
 ```bash
@@ -66,6 +78,18 @@ git pull --ff-only
 # 中文安装说明
 
 ## 安装到 Codex
+
+### 最简单的方式
+
+把下面这段话复制到 Codex：
+
+```text
+帮我安装这个 Codex skill：https://github.com/kouzt123/ad-image-localization-codex
+```
+
+Codex 可以把仓库克隆到本机 skills 目录，并告诉你是否需要重启或刷新 skills。
+
+### 手动安装
 
 直接克隆到 Codex skills 目录：
 

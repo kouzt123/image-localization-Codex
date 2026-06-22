@@ -4,7 +4,7 @@
 These helpers intentionally do not generate or translate images. Use Codex built-in
 image generation/editing for native creative work, then use this script for
 repeatable last-mile operations: safe cover-crop, manifests, verification,
-contact sheets, cultural-aware flagging, and terminology memory edits.
+contact sheets, culture-aware QA flagging, and terminology memory edits.
 """
 
 from __future__ import annotations
@@ -275,7 +275,7 @@ def unique_destination(path: Path) -> Path:
         counter += 1
 
 
-def cultural_scope_files(folder: Path, selected: list[Path], scope: str) -> list[Path]:
+def culture_aware_scope_files(folder: Path, selected: list[Path], scope: str) -> list[Path]:
     if scope == "selected":
         return selected
 
@@ -299,7 +299,7 @@ def cultural_scope_files(folder: Path, selected: list[Path], scope: str) -> list
     return sorted(scoped)
 
 
-def command_flag_cultural(args: argparse.Namespace) -> int:
+def command_flag_culture_aware(args: argparse.Namespace) -> int:
     folder = Path(args.folder)
     if not folder.exists() or not folder.is_dir():
         raise SystemExit(f"Folder not found: {folder}")
@@ -320,7 +320,7 @@ def command_flag_cultural(args: argparse.Namespace) -> int:
             raise SystemExit(f"Not an image file: {path}")
         selected.append(path)
 
-    files = cultural_scope_files(folder.resolve(), selected, args.scope)
+    files = culture_aware_scope_files(folder.resolve(), selected, args.scope)
     destination_folder = folder / args.destination
     records = []
     now = dt.datetime.now(dt.timezone.utc).isoformat()
@@ -342,7 +342,7 @@ def command_flag_cultural(args: argparse.Namespace) -> int:
             shutil.move(str(source), str(destination))
 
     if not args.dry_run:
-        log_path = destination_folder / "cultural_aware_flags.json"
+        log_path = destination_folder / "culture_aware_qa_flags.json"
         existing = []
         if log_path.exists():
             existing = json.loads(log_path.read_text(encoding="utf-8"))
@@ -538,23 +538,23 @@ def build_parser() -> argparse.ArgumentParser:
     sheet.add_argument("--quality", type=int, default=92)
     sheet.set_defaults(func=command_contact_sheet)
 
-    cultural = subparsers.add_parser(
-        "flag-cultural",
-        help="Move culturally sensitive outputs into a review folder without editing them.",
+    culture_aware = subparsers.add_parser(
+        "flag-culture-aware",
+        help="Move Culture-Aware QA flagged outputs into a review folder without editing them.",
     )
-    cultural.add_argument("folder")
-    cultural.add_argument("files", nargs="+", help="Image file names or paths to flag.")
-    cultural.add_argument("--destination", default="Flagged by Cultural Aware")
-    cultural.add_argument("--market", default="unspecified")
-    cultural.add_argument("--reason", required=True)
-    cultural.add_argument(
+    culture_aware.add_argument("folder")
+    culture_aware.add_argument("files", nargs="+", help="Image file names or paths to flag.")
+    culture_aware.add_argument("--destination", default="Flagged by Culture-Aware QA")
+    culture_aware.add_argument("--market", default="unspecified")
+    culture_aware.add_argument("--reason", required=True)
+    culture_aware.add_argument(
         "--scope",
         choices=["variant", "selected"],
         default="variant",
         help="variant moves all sizes with the same creative/language/date; selected moves only named files.",
     )
-    cultural.add_argument("--dry-run", action="store_true")
-    cultural.set_defaults(func=command_flag_cultural)
+    culture_aware.add_argument("--dry-run", action="store_true")
+    culture_aware.set_defaults(func=command_flag_culture_aware)
 
     mem_add = subparsers.add_parser("memory-add", help="Add or update a terminology memory rule.")
     mem_add.add_argument("memory_file")

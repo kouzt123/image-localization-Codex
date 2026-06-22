@@ -1,6 +1,6 @@
 ---
 name: ad-image-localization
-description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, handle RTL-aware localization with QA fallback for Arabic and other RTL languages, run cultural-aware risk checks for target markets, export standardized filenames, and visually QA generated batches. Prefer Codex built-in vision, image generation, and image editing; use local scripts only for deterministic resizing, cropping, naming, manifests, file flagging, and QA sheets.
+description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, handle RTL-aware localization with QA fallback for Arabic and other RTL languages, run culture-aware QA risk checks for target markets, export standardized filenames, and visually QA generated batches. Prefer Codex built-in vision, image generation, and image editing; use local scripts only for deterministic resizing, cropping, naming, manifests, file flagging, and QA sheets.
 ---
 
 # Ad Image Localization
@@ -19,7 +19,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 - Use deterministic scripts only for exact resize, cover-crop, naming, manifest generation, and contact-sheet QA.
 - Never use blurred padding as the default delivery method.
 - QA every deliverable before presenting the batch.
-- Run a Cultural Aware Check during QA; flag potential market-specific cultural, legal, religious, social, or political risks without modifying the creative unless the user asks.
+- Run Culture-Aware QA during QA; flag potential market-specific cultural, legal, religious, social, or political risks without modifying the creative unless the user asks.
 
 ## Typical Capabilities
 
@@ -30,7 +30,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 - Maintain brand/product terminology memory across tasks.
 - Export clean filenames and manifests for upload-ready batches.
 - Regenerate failed outputs once, then report any remaining issues.
-- Flag culturally sensitive outputs into `Flagged by Cultural Aware/` for user review before launch.
+- Flag culturally sensitive outputs into `Flagged by Culture-Aware QA/` for user review before launch.
 
 ## Workflow
 
@@ -82,23 +82,23 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - If RTL-aware localization improves reading without hurting composition, keep it and tell the user RTL-aware localization was used.
    - If the RTL-aware version looks worse, such as unbalanced composition, damaged brand recognition, unnatural layout, or abnormal text flow, generate a fallback version using copy-only localization: translate visible copy but preserve the original overall composition and layout structure.
    - Compare the RTL-aware and copy-only fallback outputs; deliver the stronger version and state which mode was used.
-   - Run a Cultural Aware Check for each target language/market:
+   - Run Culture-Aware QA for each target language/market:
      - Look for plausible market-specific concerns in localized imagery, copy, symbols, maps, borders, gestures, clothing, religious references, food/animals, political context, regulated categories, social norms, and legal or platform sensitivities.
      - Use common knowledge, not a rigid blacklist. If the risk depends on current law, politics, platform rules, or a specific target market and you are uncertain, search the web and cite the source in the final notes.
-     - If a creative has a reasonable risk, do not rewrite it by default. Move that creative's affected sizes into `Flagged by Cultural Aware/` inside the project output folder and tell the user to review or modify before launch.
+     - If a creative has a reasonable risk, do not rewrite it by default. Move that creative's affected sizes into `Flagged by Culture-Aware QA/` inside the project output folder and tell the user to review or modify before launch.
      - If only one size reveals the issue because of cropping or layout, flag that size; if the issue is inherent to the creative/language/market, flag all sizes for that creative variant.
    - Use `verify` for filename/dimension checks and `contact-sheet` to create a visual QA sheet before final review.
    - If an output fails, regenerate or re-edit once.
    - If the second attempt still fails, deliver the best available output only with a clear warning.
 
-## Cultural Aware Check
+## Culture-Aware QA
 
-The Cultural Aware Check is a QA flagging step, not automatic creative editing and not legal advice. Use it to protect the user from obvious or plausible localization risks before media spend.
+Culture-Aware QA is a QA flagging step, not automatic creative editing and not legal advice. Use it to protect the user from obvious or plausible localization risks before media spend.
 
 - Consider the target market, language, platform, product category, and the specific visual/copy context.
 - Flag risks such as religious sensitivity, restricted symbols, disputed maps or borders, political references, culturally sensitive animals or food, gestures, alcohol/gambling/medical/financial claims, modesty norms, or local advertising restrictions when they are relevant to the target market.
 - Do not maintain or apply a hard-coded blacklist. Judge the actual creative in context.
-- When flagged, leave image content unchanged and move the files into `Flagged by Cultural Aware/` with a short reason. Do not alter the image unless the user explicitly asks for a safer revision.
+- When flagged, leave image content unchanged and move the files into `Flagged by Culture-Aware QA/` with a short reason. Do not alter the image unless the user explicitly asks for a safer revision.
 - Tell the user which files were flagged, why, and that they should confirm locally before launch.
 
 ## RTL-aware Localization
@@ -119,7 +119,7 @@ python scripts/ad_image_localization_tools.py cover-crop in.png out.jpg --size 1
 python scripts/ad_image_localization_tools.py manifest localized_output/
 python scripts/ad_image_localization_tools.py verify localized_output/
 python scripts/ad_image_localization_tools.py contact-sheet localized_output/ qa_contact_sheet.jpg
-python scripts/ad_image_localization_tools.py flag-cultural localized_output/ rabbit-social-networks_ar_1200x628_20260622.jpg --market "GCC" --reason "Animal/food symbolism may need local review"
+python scripts/ad_image_localization_tools.py flag-culture-aware localized_output/ rabbit-social-networks_ar_1200x628_20260622.jpg --market "GCC" --reason "Animal/food symbolism may need local review"
 python scripts/ad_image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
 ```
 

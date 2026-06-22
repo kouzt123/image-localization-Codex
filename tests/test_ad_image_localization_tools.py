@@ -118,7 +118,7 @@ class BatchHelperTests(unittest.TestCase):
                 self.assertEqual(tools.command_contact_sheet(sheet_args), 0)
             self.assertTrue(sheet_path.exists())
 
-    def test_flag_cultural_moves_matching_variant_sizes_and_writes_log(self) -> None:
+    def test_flag_culture_aware_moves_matching_variant_sizes_and_writes_log(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             folder = Path(tmpdir)
             files = [
@@ -132,22 +132,22 @@ class BatchHelperTests(unittest.TestCase):
             args = argparse.Namespace(
                 folder=str(folder),
                 files=["rabbit-social-networks_ar_1200x628_20260621.jpg"],
-                destination="Flagged by Cultural Aware",
+                destination="Flagged by Culture-Aware QA",
                 market="GCC",
                 reason="Needs local cultural review",
                 scope="variant",
                 dry_run=False,
             )
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(tools.command_flag_cultural(args), 0)
+                self.assertEqual(tools.command_flag_culture_aware(args), 0)
 
-            flagged_folder = folder / "Flagged by Cultural Aware"
+            flagged_folder = folder / "Flagged by Culture-Aware QA"
             self.assertTrue((flagged_folder / "rabbit-social-networks_ar_1200x628_20260621.jpg").exists())
             self.assertTrue((flagged_folder / "rabbit-social-networks_ar_1200x1200_20260621.jpg").exists())
             self.assertTrue((folder / "rabbit-social-networks_de_1200x628_20260621.jpg").exists())
             self.assertFalse((folder / "rabbit-social-networks_ar_1200x628_20260621.jpg").exists())
 
-            log = json.loads((flagged_folder / "cultural_aware_flags.json").read_text())
+            log = json.loads((flagged_folder / "culture_aware_qa_flags.json").read_text())
             self.assertEqual(len(log), 2)
             self.assertEqual(log[0]["market"], "GCC")
             self.assertEqual(log[0]["reason"], "Needs local cultural review")
