@@ -118,6 +118,40 @@ class BatchHelperTests(unittest.TestCase):
                 self.assertEqual(tools.command_contact_sheet(sheet_args), 0)
             self.assertTrue(sheet_path.exists())
 
+    def test_flag_cultural_moves_matching_variant_sizes_and_writes_log(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            folder = Path(tmpdir)
+            files = [
+                folder / "rabbit-social-networks_ar_1200x628_20260621.jpg",
+                folder / "rabbit-social-networks_ar_1200x1200_20260621.jpg",
+                folder / "rabbit-social-networks_de_1200x628_20260621.jpg",
+            ]
+            for path in files:
+                Image.new("RGB", (1200, 628), "#ffffff").save(path)
+
+            args = argparse.Namespace(
+                folder=str(folder),
+                files=["rabbit-social-networks_ar_1200x628_20260621.jpg"],
+                destination="Flagged by Cultural Aware",
+                market="GCC",
+                reason="Needs local cultural review",
+                scope="variant",
+                dry_run=False,
+            )
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(tools.command_flag_cultural(args), 0)
+
+            flagged_folder = folder / "Flagged by Cultural Aware"
+            self.assertTrue((flagged_folder / "rabbit-social-networks_ar_1200x628_20260621.jpg").exists())
+            self.assertTrue((flagged_folder / "rabbit-social-networks_ar_1200x1200_20260621.jpg").exists())
+            self.assertTrue((folder / "rabbit-social-networks_de_1200x628_20260621.jpg").exists())
+            self.assertFalse((folder / "rabbit-social-networks_ar_1200x628_20260621.jpg").exists())
+
+            log = json.loads((flagged_folder / "cultural_aware_flags.json").read_text())
+            self.assertEqual(len(log), 2)
+            self.assertEqual(log[0]["market"], "GCC")
+            self.assertEqual(log[0]["reason"], "Needs local cultural review")
+
 
 class MemoryTests(unittest.TestCase):
     def test_memory_add_creates_brand_product_rule(self) -> None:

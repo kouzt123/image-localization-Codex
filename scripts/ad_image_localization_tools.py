@@ -4,7 +4,7 @@
 These helpers intentionally do not generate or translate images. Use Codex built-in
 image generation/editing for native creative work, then use this script for
 repeatable last-mile operations: safe cover-crop, manifests, verification,
-contact sheets, and terminology memory edits.
+contact sheets, cultural-aware flagging, and terminology memory edits.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import argparse
 import datetime as dt
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -263,6 +264,102 @@ def command_verify(args: argparse.Namespace) -> int:
     return 1 if failed and not args.no_fail else 0
 
 
+def unique_destination(path: Path) -> Path:
+    if not path.exists():
+        return path
+    counter = 2
+    while True:
+        candidate = path.with_name(f"{path.stem}__flagged-{counter}{path.suffix}")
+        if not candidate.exists():
+            return candidate
+        counter += 1
+
+
+def cultural_scope_files(folder: Path, selected: list[Path], scope: str) -> list[Path]:
+    if scope == "selected":
+        return selected
+
+    scoped: dict[Path, None] = {path: None for path in selected}
+    all_files = image_files(folder)
+    for path in selected:
+        parsed = parse_delivery_name(path)
+        creative = parsed.get("creative")
+        language = parsed.get("language")
+        date = parsed.get("date")
+        if not creative or not language or not date:
+            continue
+        for candidate in all_files:
+            candidate_parsed = parse_delivery_name(candidate)
+            if (
+                candidate_parsed.get("creative") == creative
+                and candidate_parsed.get("language") == language
+                and candidate_parsed.get("date") == date
+            ):
+                scoped[candidate] = None
+    return sorted(scoped)
+
+
+def command_flag_cultural(args: argparse.Namespace) -> int:
+    folder = Path(args.folder)
+    if not folder.exists() or not folder.is_dir():
+        raise SystemExit(f"Folder not found: {folder}")
+
+    selected = []
+    for file_name in args.files:
+        path = Path(file_name)
+        if not path.is_absolute():
+            path = folder / path
+        path = path.resolve()
+        try:
+            path.relative_to(folder.resolve())
+        except ValueError as exc:
+            raise SystemExit(f"Refusing to move file outside folder: {file_name}") from exc
+        if not path.exists() or not path.is_file():
+            raise SystemExit(f"File not found: {path}")
+        if path.suffix.lower() not in IMAGE_EXTS:
+            raise SystemExit(f"Not an image file: {path}")
+        selected.append(path)
+
+    files = cultural_scope_files(folder.resolve(), selected, args.scope)
+    destination_folder = folder / args.destination
+    records = []
+    now = dt.datetime.now(dt.timezone.utc).isoformat()
+
+    for source in files:
+        destination = unique_destination(destination_folder / source.name)
+        record = {
+            "file": destination.name,
+            "original_file": source.name,
+            "market": args.market,
+            "reason": args.reason,
+            "source_path": str(source),
+            "destination_path": str(destination),
+            "flagged_at": now,
+        }
+        records.append(record)
+        if not args.dry_run:
+            destination_folder.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(source), str(destination))
+
+    if not args.dry_run:
+        log_path = destination_folder / "cultural_aware_flags.json"
+        existing = []
+        if log_path.exists():
+            existing = json.loads(log_path.read_text(encoding="utf-8"))
+        existing.extend(records)
+        log_path.write_text(json.dumps(existing, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    summary = {
+        "folder": str(folder),
+        "destination": str(destination_folder),
+        "scope": args.scope,
+        "dry_run": args.dry_run,
+        "flagged": records,
+    }
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0
+
+
 def load_font(size: int, bold: bool = False) -> Any:
     require_pillow()
     candidates = [
@@ -440,6 +537,24 @@ def build_parser() -> argparse.ArgumentParser:
     sheet.add_argument("--background", default="#f7f8fb")
     sheet.add_argument("--quality", type=int, default=92)
     sheet.set_defaults(func=command_contact_sheet)
+
+    cultural = subparsers.add_parser(
+        "flag-cultural",
+        help="Move culturally sensitive outputs into a review folder without editing them.",
+    )
+    cultural.add_argument("folder")
+    cultural.add_argument("files", nargs="+", help="Image file names or paths to flag.")
+    cultural.add_argument("--destination", default="Flagged by Cultural Aware")
+    cultural.add_argument("--market", default="unspecified")
+    cultural.add_argument("--reason", required=True)
+    cultural.add_argument(
+        "--scope",
+        choices=["variant", "selected"],
+        default="variant",
+        help="variant moves all sizes with the same creative/language/date; selected moves only named files.",
+    )
+    cultural.add_argument("--dry-run", action="store_true")
+    cultural.set_defaults(func=command_flag_cultural)
 
     mem_add = subparsers.add_parser("memory-add", help="Add or update a terminology memory rule.")
     mem_add.add_argument("memory_file")

@@ -1,4 +1,4 @@
 interface:
   display_name: "Ad Image Localization"
-  short_description: "Localize and resize ad-ready images"
+  short_description: "Localize, resize, QA, and flag ad-ready images"
   default_prompt: "Use $ad-image-localization to localize this image into platform-ready ad sizes."
