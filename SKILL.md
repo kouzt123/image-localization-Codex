@@ -1,6 +1,6 @@
 ---
 name: ad-image-localization
-description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, export standardized filenames, and visually QA generated batches. Prefer Codex built-in vision, image generation, and image editing; use local scripts only for deterministic resizing, cropping, naming, manifests, and QA sheets.
+description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, handle RTL-aware localization with QA fallback for Arabic and other RTL languages, export standardized filenames, and visually QA generated batches. Prefer Codex built-in vision, image generation, and image editing; use local scripts only for deterministic resizing, cropping, naming, manifests, and QA sheets.
 ---
 
 # Ad Image Localization
@@ -13,6 +13,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 
 - Inspect the source image before generating variants.
 - Translate all visible user-facing text unless it is a brand/product term that should be preserved.
+- For RTL languages such as Arabic, Hebrew, Persian, and Urdu, attempt RTL-aware localization by default, then fall back to copy-only localization if QA judges the adapted layout worse.
 - Preserve logos, products, characters, UI hierarchy, legibility, and crop-safe zones.
 - Prefer model-native aspect-ratio generation over local design reconstruction.
 - Use deterministic scripts only for exact resize, cover-crop, naming, manifest generation, and contact-sheet QA.
@@ -22,6 +23,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 ## Typical Capabilities
 
 - Generate localized versions for one or more target languages.
+- Apply RTL-aware localization for RTL languages by default, with QA-controlled fallback to copy-only localization.
 - Adapt one creative into common ad/social sizes such as `1200x1200`, `1920x1080`, `1080x1350`, `1080x1920`, and `1200x628`.
 - Handle special resolutions by generating the closest safe model-native ratio, then applying deterministic cover-crop when appropriate.
 - Maintain brand/product terminology memory across tasks.
@@ -35,8 +37,9 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - For batches, inspect each distinct source image at least once.
 
 2. **Build a job spec**
-   - Track source image, brand, product, target languages, target dimensions, output directory, naming slug, protected terms, and QA notes.
+   - Track source image, brand, product, target languages, target dimensions, output directory, naming slug, protected terms, localization mode, and QA notes.
    - Keep brand-level terminology separate from product-level terminology.
+   - For RTL target languages, set localization mode to `rtl-aware` by default unless the user explicitly requests copy-only layout preservation.
 
 3. **Check terminology memory**
    - Read `$CODEX_HOME/skills/ad-image-localization/brand_term_memory.json` when available.
@@ -47,6 +50,12 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 4. **Generate model-native variants**
    - Use Codex built-in image generation/editing for translation, text replacement, layout reflow, and canvas extension.
    - For each language, prefer generating a strong anchor version first, then use it as the visual reference for the same language's other sizes.
+   - For RTL languages, first attempt RTL-aware localization:
+     - Adapt headline, body copy, CTA, and text blocks for right-to-left reading.
+     - Prefer right alignment or RTL-friendly text grouping when it improves reading flow.
+     - Adjust visual weight, information hierarchy, UI labels, dialogue bubbles, or local layout only when it improves natural RTL reading.
+     - Do not mechanically mirror the whole design.
+     - Do not flip logos, brand marks, product identity, or important brand recognition unless the user explicitly requests it.
    - For `16:9` sources that will feed `1200x628`, ask the model to keep important content away from the top/bottom edge.
 
 5. **Post-process deterministically**
@@ -67,9 +76,22 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 
 7. **QA**
    - Check dimensions, language, readability, crop safety, missing objects, malformed text, visual artifacts, and brand/product preservation.
+   - For RTL outputs, judge whether the RTL-aware layout is natural, readable, balanced, and brand-safe.
+   - If RTL-aware localization improves reading without hurting composition, keep it and tell the user RTL-aware localization was used.
+   - If the RTL-aware version looks worse, such as unbalanced composition, damaged brand recognition, unnatural layout, or abnormal text flow, generate a fallback version using copy-only localization: translate visible copy but preserve the original overall composition and layout structure.
+   - Compare the RTL-aware and copy-only fallback outputs; deliver the stronger version and state which mode was used.
    - Use `verify` for filename/dimension checks and `contact-sheet` to create a visual QA sheet before final review.
    - If an output fails, regenerate or re-edit once.
    - If the second attempt still fails, deliver the best available output only with a clear warning.
+
+## RTL-aware Localization
+
+RTL-aware is the default attempt for RTL languages, with fallback to copy-only localization when QA judges the adapted layout to be worse.
+
+- **Option A: RTL-aware enabled**: default for Arabic and other RTL languages. Adapt visible copy, alignment, local text grouping, CTA flow, and limited UI/dialogue layout for right-to-left reading when it benefits readability and native feel.
+- **Option B: RTL-aware disabled / fallback**: translate visible copy only and preserve the original layout structure when RTL layout adaptation reduces quality.
+
+Use RTL-aware adaptation as a reading-flow improvement, not as a blanket mirror operation. Preserve logos, brand identity, product imagery, and recognizable campaign structure unless the user asks otherwise.
 
 ## Bundled Helper Script
 
@@ -152,6 +174,7 @@ Brand rules apply to all products under the brand. Product rules override brand 
 ## Usage Examples
 
 - "Localize this game ad into German, French, Spanish, Japanese, and Korean, then export the common ad sizes."
+- "Localize this poster into Arabic. Try RTL-aware layout adaptation first; if QA shows it hurts the composition, fall back to copy-only localization."
 - "把这张图里的所有文字翻译成葡萄牙语，品牌名不要翻译，输出 `1200x1200`、`1080x1920` 和 `1200x628`。"
 - "Generate `1200x628` from the 16:9 version with safe cropping. Do not stretch the image."
 - "Remember that this product name should stay in English for this brand."
