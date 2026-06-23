@@ -1,6 +1,6 @@
 ---
 name: ad-image-localization
-description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, handle RTL-aware localization with QA fallback for Arabic and other RTL languages, run culture-aware QA risk checks for target markets, export standardized filenames, and visually QA generated batches. For pixel-changing work, invoke the imagegen skill's default built-in image_gen workflow first; use local scripts only for deterministic resizing, cropping, naming, manifests, file flagging, and QA sheets.
+description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, handle RTL-aware localization with QA fallback for Arabic and other RTL languages, run culture-aware QA checks, export standardized filenames, and visually QA generated batches. For localization and standard ad-size adaptation, invoke the imagegen skill's default built-in image_gen workflow first; use local scripts only for naming, manifests, file flagging, QA sheets, and explicitly safe derivative crops/resizes from already model-generated outputs.
 ---
 
 # Ad Image Localization
@@ -12,12 +12,12 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 ## Core Principles
 
 - Inspect the source image before generating variants.
-- For any deliverable that changes visible pixels beyond deterministic crop/resize, invoke `imagegen` and use its default built-in `image_gen` tool path. Do not replace model-native generation with script-only OCR, masking, compositing, or cropping.
+- For localization and standard ad-size adaptation, invoke `imagegen` and use its default built-in `image_gen` tool path. Do not replace model-native generation with script-only OCR, masking, compositing, resizing, or cropping.
 - Translate all visible user-facing text unless it is a brand/product term that should be preserved.
 - For RTL languages such as Arabic, Hebrew, Persian, and Urdu, attempt RTL-aware localization by default, then fall back to copy-only localization if QA judges the adapted layout worse.
 - Preserve logos, products, characters, UI hierarchy, legibility, and crop-safe zones.
 - Prefer model-native aspect-ratio generation over local design reconstruction.
-- Use deterministic scripts only for exact resize, cover-crop, naming, manifest generation, and contact-sheet QA.
+- Use deterministic scripts only for naming, manifest generation, contact-sheet QA, file flagging, and explicitly safe derivative crops/resizes from model-generated outputs.
 - Never use blurred padding as the default delivery method.
 - QA every deliverable before presenting the batch.
 - Run Culture-Aware QA during QA; flag potential market-specific cultural, legal, religious, social, or political risks without modifying the creative unless the user asks.
@@ -40,7 +40,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - Follow `imagegen`'s default built-in tool mode. Do not use API/CLI fallback or ask for an API key unless the user explicitly requests that path.
    - If `imagegen` is unavailable, tell the user that model-native image generation/editing is unavailable in the current Codex environment; do not silently downgrade to script-only image localization.
    - If the source image is only a local file path, inspect it first so the edit target is visible in the conversation context before using built-in image editing.
-   - Use this skill's helper script only after model-native output exists, for exact crop/resize, naming, manifests, culture-aware file flagging, and QA sheets.
+   - Use this skill's helper script only after model-native output exists, and only for naming, manifests, culture-aware file flagging, QA sheets, or safe deterministic derivatives explicitly allowed below.
 
 2. **Recognize the source**
    - Identify visible text, language, subject, brand/product signals, logo, CTA, layout, important edges, and crop risks.
@@ -58,8 +58,9 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - If the current image appears to belong to a different brand/product family than the last task, warn the user and suggest starting a separate task/output folder before applying remembered terms.
 
 5. **Generate model-native variants**
-   - Use `imagegen` built-in `image_gen` calls for translation, text replacement, layout reflow, canvas extension, and visual repair.
-   - Generate or edit each language/size deliverable with the model unless it is a deterministic derivative of an already model-generated safe source, such as `1200x628` cover-cropped from a safe `16:9` output.
+   - Use `imagegen` built-in `image_gen` calls for translation, text replacement, layout reflow, canvas extension, visual repair, and standard ad-size adaptation.
+   - Generate or edit each requested standard size with the model. For the default set, `1200x1200`, `1920x1080`, `1080x1350`, and `1080x1920` must be model-native outputs, not script-resized copies.
+   - Treat `1200x628` and other uncommon close-ratio sizes as deterministic derivatives only when there is already a safe model-generated source ratio, such as a `1920x1080` output with clear top/bottom margins.
    - For each language, prefer generating a strong anchor version first, then use it as the visual reference for the same language's other sizes.
    - For RTL languages, first attempt RTL-aware localization:
      - Adapt headline, body copy, CTA, and text blocks for right-to-left reading.
@@ -69,10 +70,11 @@ Use this skill to turn source image creatives into localized, platform-ready ass
      - Do not flip logos, brand marks, product identity, or important brand recognition unless the user explicitly requests it.
    - For `16:9` sources that will feed `1200x628`, ask the model to keep important content away from the top/bottom edge.
 
-6. **Post-process deterministically**
-   - Use exact resize when the raw model output already matches the target aspect ratio.
-   - Use cover-crop when the target ratio is close to a generated common ratio and the model output has safe margins.
-   - Use model-generated canvas extension or reflow instead of blur padding when crop would remove important content.
+6. **Post-process deterministic derivatives only**
+   - Do not use scripts to create the primary `1:1`, `16:9`, `4:5`, or `9:16` deliverables. Those should come from `imagegen`.
+   - Use exact resize only when a model-generated output already has the same aspect ratio and only needs final pixel normalization.
+   - Use cover-crop only when the target ratio is close to a model-generated common ratio and the model output has safe margins.
+   - Use model-generated canvas extension or reflow instead of script resizing or blur padding when crop would remove important content.
    - Prefer the bundled helper for repeatable local operations:
      `python scripts/ad_image_localization_tools.py cover-crop <input> <output> --size 1200x628`.
 
@@ -121,7 +123,7 @@ Use RTL-aware adaptation as a reading-flow improvement, not as a blanket mirror 
 
 ## Bundled Helper Script
 
-Use `scripts/ad_image_localization_tools.py` only for deterministic last-mile work after `imagegen` has produced the image assets. It does not call image APIs and does not replace `imagegen` or Codex built-in image generation.
+Use `scripts/ad_image_localization_tools.py` only for deterministic last-mile work after `imagegen` has produced the image assets. It does not call image APIs and does not replace `imagegen` or Codex built-in image generation. In particular, do not use the helper to create primary ad-size variants that should be model-native.
 
 ```bash
 python scripts/ad_image_localization_tools.py cover-crop in.png out.jpg --size 1200x628
@@ -138,9 +140,9 @@ The helper expects Pillow. In Codex desktop environments, use the bundled Python
 
 Use this priority order:
 
-1. **Generate the requested aspect ratio natively** when text, products, faces, logos, or UI are near edges.
-2. **Generate the closest common ratio with safe margins, then cover-crop** when the target is close to a standard format.
-3. **Use model-based canvas extension or layout reflow** when crop would damage important content.
+1. **Generate requested standard ad ratios natively with `imagegen`**. For the default set, create `1:1`, `16:9`, `4:5`, and `9:16` as model-native outputs.
+2. **Generate the closest common ratio with safe margins, then cover-crop** only for uncommon close-ratio derivatives such as `1200x628`.
+3. **Use model-based canvas extension or layout reflow** when deterministic crop would damage important content.
 4. **Use non-uniform resize only when explicitly requested or when distortion is visually negligible.**
 
 Deterministic cover-crop:

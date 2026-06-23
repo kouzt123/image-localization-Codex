@@ -34,12 +34,12 @@ Future work may include a separate high-throughput skill based on the Nano Banan
   - `1080x1350`
   - `1080x1920`
   - `1200x628`
-- Handles special resolutions by generating the closest safe aspect ratio, then applying deterministic cover-crop when appropriate.
+- Generates standard ad ratios with `imagegen`; handles special close-ratio resolutions by cover-cropping only from safe model-generated outputs.
 - Maintains brand/product terminology memory.
 - Produces clean upload-ready filenames and manifests.
 - Runs visual QA before delivery, with one regeneration pass for failed outputs.
 - Runs Culture-Aware QA during QA and moves potentially sensitive outputs into `Flagged by Culture-Aware QA/` for user review.
-- Includes a deterministic helper script for safe crop, manifests, filename/dimension checks, QA contact sheets, culture-aware QA flagging, and terminology memory updates.
+- Includes a deterministic helper script for safe derivative crops, manifests, filename/dimension checks, QA contact sheets, culture-aware QA flagging, and terminology memory updates.
 
 ![Organized output folder demo](./examples/organized-output-folder.png)
 
@@ -92,13 +92,14 @@ python scripts/ad_image_localization_tools.py flag-culture-aware localized_outpu
 python scripts/ad_image_localization_tools.py memory-add brand_term_memory.json --brand openai --term Codex --action preserve
 ```
 
-Use it after model-native generation for repeatable safe cropping, upload-ready manifests, filename/dimension checks, visual QA sheets, Culture-Aware QA flagging, and brand/product terminology memory. The helper uses Pillow; install it with `python -m pip install -r requirements.txt` when running outside Codex bundled Python environments.
+Use it after model-native generation for repeatable safe derivative cropping, upload-ready manifests, filename/dimension checks, visual QA sheets, Culture-Aware QA flagging, and brand/product terminology memory. Do not use the helper to create the primary `1:1`, `16:9`, `4:5`, or `9:16` variants; those should be generated with `imagegen`. The helper uses Pillow; install it with `python -m pip install -r requirements.txt` when running outside Codex bundled Python environments.
 
 Local helper tests:
 
 ```bash
 python -m pip install -r requirements.txt
 python -m unittest discover -s tests
+python scripts/ad_image_localization_tools.py verify examples/verified-delivery-pack
 ```
 
 ## Installation
@@ -190,7 +191,9 @@ Use ad-image-localization to turn these app screenshots into Indonesian and Viet
 
 ## Size Handling
 
-For special sizes such as `1200x628`, the recommended workflow is:
+For standard ad ratios, generate each requested ratio with `imagegen` so text, layout, subject placement, and safe zones are natively adapted.
+
+For special close-ratio sizes such as `1200x628`, the recommended deterministic derivative workflow is:
 
 1. Generate a strong `16:9` version with top/bottom safe margins.
 2. Resize proportionally from `1920x1080` to `1200x675`.
