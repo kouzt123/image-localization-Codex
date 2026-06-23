@@ -1,17 +1,18 @@
 ---
 name: ad-image-localization
-description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, handle RTL-aware localization with QA fallback for Arabic and other RTL languages, run culture-aware QA risk checks for target markets, export standardized filenames, and visually QA generated batches. Prefer Codex built-in vision, image generation, and image editing; use local scripts only for deterministic resizing, cropping, naming, manifests, file flagging, and QA sheets.
+description: Localize and prepare image creatives for ads, social posts, ecommerce, and campaign delivery. Use when Codex needs to adapt images into platform-specific dimensions, translate text inside images, preserve native visual quality, apply brand terminology rules, handle RTL-aware localization with QA fallback for Arabic and other RTL languages, run culture-aware QA risk checks for target markets, export standardized filenames, and visually QA generated batches. For pixel-changing work, invoke the imagegen skill's default built-in image_gen workflow first; use local scripts only for deterministic resizing, cropping, naming, manifests, file flagging, and QA sheets.
 ---
 
 # Ad Image Localization
 
 ## Purpose
 
-Use this skill to turn source image creatives into localized, platform-ready assets. The priority is native visual quality: use Codex built-in vision and image generation/editing for recognition, translation, layout reflow, canvas extension, and visual repair. Use code only for deterministic file operations.
+Use this skill to turn source image creatives into localized, platform-ready assets. The priority is native visual quality: use the `imagegen` skill's default built-in `image_gen` workflow for recognition-backed image generation/editing, translation, layout reflow, canvas extension, and visual repair. Use code only for deterministic file operations.
 
 ## Core Principles
 
 - Inspect the source image before generating variants.
+- For any deliverable that changes visible pixels beyond deterministic crop/resize, invoke `imagegen` and use its default built-in `image_gen` tool path. Do not replace model-native generation with script-only OCR, masking, compositing, or cropping.
 - Translate all visible user-facing text unless it is a brand/product term that should be preserved.
 - For RTL languages such as Arabic, Hebrew, Persian, and Urdu, attempt RTL-aware localization by default, then fall back to copy-only localization if QA judges the adapted layout worse.
 - Preserve logos, products, characters, UI hierarchy, legibility, and crop-safe zones.
@@ -34,23 +35,31 @@ Use this skill to turn source image creatives into localized, platform-ready ass
 
 ## Workflow
 
-1. **Recognize the source**
+1. **Activate the imagegen path for pixel-changing work**
+   - If the task creates localized images, replaces in-image text, expands canvas, reflows layout, repairs artifacts, or generates aspect-ratio variants, use `imagegen` first.
+   - Follow `imagegen`'s default built-in tool mode. Do not use API/CLI fallback or ask for an API key unless the user explicitly requests that path.
+   - If `imagegen` is unavailable, tell the user that model-native image generation/editing is unavailable in the current Codex environment; do not silently downgrade to script-only image localization.
+   - If the source image is only a local file path, inspect it first so the edit target is visible in the conversation context before using built-in image editing.
+   - Use this skill's helper script only after model-native output exists, for exact crop/resize, naming, manifests, culture-aware file flagging, and QA sheets.
+
+2. **Recognize the source**
    - Identify visible text, language, subject, brand/product signals, logo, CTA, layout, important edges, and crop risks.
    - For batches, inspect each distinct source image at least once.
 
-2. **Build a job spec**
+3. **Build a job spec**
    - Track source image, brand, product, target languages, target dimensions, output directory, naming slug, protected terms, localization mode, and QA notes.
    - Keep brand-level terminology separate from product-level terminology.
    - For RTL target languages, set localization mode to `rtl-aware` by default unless the user explicitly requests copy-only layout preservation.
 
-3. **Check terminology memory**
+4. **Check terminology memory**
    - Read `$CODEX_HOME/skills/ad-image-localization/brand_term_memory.json` when available.
    - If the workspace has `.ad-image-localization/brand_term_memory.json`, prefer it for project-local rules.
    - Persist only user-approved rules, such as "translate X as Y" or "do not translate X".
    - If the current image appears to belong to a different brand/product family than the last task, warn the user and suggest starting a separate task/output folder before applying remembered terms.
 
-4. **Generate model-native variants**
-   - Use Codex built-in image generation/editing for translation, text replacement, layout reflow, and canvas extension.
+5. **Generate model-native variants**
+   - Use `imagegen` built-in `image_gen` calls for translation, text replacement, layout reflow, canvas extension, and visual repair.
+   - Generate or edit each language/size deliverable with the model unless it is a deterministic derivative of an already model-generated safe source, such as `1200x628` cover-cropped from a safe `16:9` output.
    - For each language, prefer generating a strong anchor version first, then use it as the visual reference for the same language's other sizes.
    - For RTL languages, first attempt RTL-aware localization:
      - Adapt headline, body copy, CTA, and text blocks for right-to-left reading.
@@ -60,14 +69,14 @@ Use this skill to turn source image creatives into localized, platform-ready ass
      - Do not flip logos, brand marks, product identity, or important brand recognition unless the user explicitly requests it.
    - For `16:9` sources that will feed `1200x628`, ask the model to keep important content away from the top/bottom edge.
 
-5. **Post-process deterministically**
+6. **Post-process deterministically**
    - Use exact resize when the raw model output already matches the target aspect ratio.
    - Use cover-crop when the target ratio is close to a generated common ratio and the model output has safe margins.
    - Use model-generated canvas extension or reflow instead of blur padding when crop would remove important content.
    - Prefer the bundled helper for repeatable local operations:
      `python scripts/ad_image_localization_tools.py cover-crop <input> <output> --size 1200x628`.
 
-6. **Export**
+7. **Export**
    - Default filename pattern:
      `<creative-name>_<language-or-locale>_<width>x<height>_<yyyymmdd>.<ext>`
    - Use lowercase English slugs for creative names.
@@ -76,7 +85,7 @@ Use this skill to turn source image creatives into localized, platform-ready ass
    - For batch folders, use the helper to write manifests:
      `python scripts/ad_image_localization_tools.py manifest <output-folder>`.
 
-7. **QA**
+8. **QA**
    - Check dimensions, language, readability, crop safety, missing objects, malformed text, visual artifacts, and brand/product preservation.
    - For RTL outputs, judge whether the RTL-aware layout is natural, readable, balanced, and brand-safe.
    - If RTL-aware localization improves reading without hurting composition, keep it and tell the user RTL-aware localization was used.
@@ -112,7 +121,7 @@ Use RTL-aware adaptation as a reading-flow improvement, not as a blanket mirror 
 
 ## Bundled Helper Script
 
-Use `scripts/ad_image_localization_tools.py` only for deterministic last-mile work. It does not call image APIs and does not replace Codex built-in image generation.
+Use `scripts/ad_image_localization_tools.py` only for deterministic last-mile work after `imagegen` has produced the image assets. It does not call image APIs and does not replace `imagegen` or Codex built-in image generation.
 
 ```bash
 python scripts/ad_image_localization_tools.py cover-crop in.png out.jpg --size 1200x628

@@ -13,6 +13,7 @@ Ad Image Localization is a Codex skill for turning source image creatives into l
 - **Uses your Codex subscription quota** for image generation and editing.
 - **No extra API setup**: no image API key, no separate billing account, no external generation service required.
 - **Native visual output**: relies on Codex built-in vision, image generation, and image editing instead of simple masking or mechanical text replacement.
+- **Imagegen-first workflow**: pixel-changing work should invoke Codex's `imagegen` skill and built-in `image_gen` path first; local scripts are only for deterministic finishing steps.
 - **Campaign-ready workflow**: standardized filenames, manifests, common ad sizes, visual QA, and Culture-Aware QA before delivery.
 - **Good long-running value**: slower than a dedicated batch API, but low setup cost and strong output quality make it useful for marketing teams that can let jobs run in the background.
 
@@ -79,7 +80,7 @@ The user should review those files before launch or ask Codex to create a safer 
 
 ## Helper Script
 
-The bundled Python helper handles deterministic last-mile work. It does **not** call an image API and does not replace Codex built-in image generation.
+The bundled Python helper handles deterministic last-mile work after model-native output exists. It does **not** call an image API and does not replace Codex `imagegen` or built-in image generation.
 
 ```bash
 python -m pip install -r requirements.txt
